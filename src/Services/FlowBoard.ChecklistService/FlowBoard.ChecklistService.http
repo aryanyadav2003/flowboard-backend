@@ -1,0 +1,6 @@
+@FlowBoard.ChecklistService_HostAddress = http://localhost:5004
+
+GET {{FlowBoard.ChecklistService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
