@@ -20,8 +20,7 @@ public class BoardController : ControllerBase
     {
         try {
             var result = await _svc.CreateAsync(User.GetUserId(), dto);
-            return CreatedAtAction(nameof(GetById), new { id = result.BoardId },
-                ApiResponse<BoardDto>.Ok(result, "Board created"));
+            return Ok(ApiResponse<BoardDto>.Ok(result, "Board created"));
         }
         catch (Exception ex) { return BadRequest(ApiResponse<BoardDto>.Fail(ex.Message)); }
     }
