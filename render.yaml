@@ -1,0 +1,259 @@
+services:
+  # ── API Gateway ──────────────────────────────────────────────────
+  - type: web
+    name: flowboard-gateway
+    env: docker
+    dockerContext: .
+    dockerfilePath: src/Gateway/FlowBoard.Gateway/Dockerfile
+    plan: free
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: ASPNETCORE_URLS
+        value: http://+:5000
+      - key: Jwt__Key
+        generateValue: true
+      - key: Jwt__Issuer
+        value: FlowBoard
+      - key: Jwt__Audience
+        value: FlowBoardUsers
+      - key: AllowedOrigins
+        value: http://localhost:4200,https://flowboard-ui.onrender.com
+      - key: ReverseProxy__Clusters__auth-cluster__Destinations__auth-destination__Address
+        value: http://auth-service:5001/
+      - key: ReverseProxy__Clusters__workspace-cluster__Destinations__workspace-destination__Address
+        value: http://workspace-service:5002/
+      - key: ReverseProxy__Clusters__board-cluster__Destinations__board-destination__Address
+        value: http://board-service:5003/
+      - key: ReverseProxy__Clusters__list-cluster__Destinations__list-destination__Address
+        value: http://list-service:5004/
+      - key: ReverseProxy__Clusters__card-cluster__Destinations__card-destination__Address
+        value: http://card-service:5005/
+      - key: ReverseProxy__Clusters__comment-cluster__Destinations__comment-destination__Address
+        value: http://comment-service:5006/
+      - key: ReverseProxy__Clusters__label-cluster__Destinations__label-destination__Address
+        value: http://label-service:5007/
+      - key: ReverseProxy__Clusters__checklist-cluster__Destinations__checklist-destination__Address
+        value: http://checklist-service:5008/
+
+  # ── Auth Service ─────────────────────────────────────────────────
+  - type: web
+    name: auth-service
+    env: docker
+    dockerContext: .
+    dockerfilePath: src/Services/FlowBoard.AuthService/Dockerfile
+    plan: free
+    envVars:
+      - key: PORT
+        value: 5001
+      - key: ASPNETCORE_URLS
+        value: http://+:5001
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: flowboard-db
+          property: connectionString
+      - key: Jwt__Key
+        fromService:
+          type: web
+          name: flowboard-gateway
+          envVar: Jwt__Key
+      - key: Jwt__Issuer
+        value: FlowBoard
+      - key: Jwt__Audience
+        value: FlowBoardUsers
+
+  # ── Workspace Service ────────────────────────────────────────────
+  - type: web
+    name: workspace-service
+    env: docker
+    dockerContext: .
+    dockerfilePath: src/Services/FlowBoard.WorkspaceService/Dockerfile
+    plan: free
+    envVars:
+      - key: PORT
+        value: 5002
+      - key: ASPNETCORE_URLS
+        value: http://+:5002
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: flowboard-db
+          property: connectionString
+      - key: Jwt__Key
+        fromService:
+          type: web
+          name: flowboard-gateway
+          envVar: Jwt__Key
+      - key: Jwt__Issuer
+        value: FlowBoard
+      - key: Jwt__Audience
+        value: FlowBoardUsers
+
+  # ── Board Service ───────────────────────────────────────────────
+  - type: web
+    name: board-service
+    env: docker
+    dockerContext: .
+    dockerfilePath: src/Services/FlowBoard.BoardService/Dockerfile
+    plan: free
+    envVars:
+      - key: PORT
+        value: 5003
+      - key: ASPNETCORE_URLS
+        value: http://+:5003
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: flowboard-db
+          property: connectionString
+      - key: Jwt__Key
+        fromService:
+          type: web
+          name: flowboard-gateway
+          envVar: Jwt__Key
+      - key: Jwt__Issuer
+        value: FlowBoard
+      - key: Jwt__Audience
+        value: FlowBoardUsers
+
+  # ── List Service ────────────────────────────────────────────────
+  - type: web
+    name: list-service
+    env: docker
+    dockerContext: .
+    dockerfilePath: src/Services/FlowBoard.ListService/Dockerfile
+    plan: free
+    envVars:
+      - key: PORT
+        value: 5004
+      - key: ASPNETCORE_URLS
+        value: http://+:5004
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: flowboard-db
+          property: connectionString
+      - key: Jwt__Key
+        fromService:
+          type: web
+          name: flowboard-gateway
+          envVar: Jwt__Key
+      - key: Jwt__Issuer
+        value: FlowBoard
+      - key: Jwt__Audience
+        value: FlowBoardUsers
+
+  # ── Card Service ────────────────────────────────────────────────
+  - type: web
+    name: card-service
+    env: docker
+    dockerContext: .
+    dockerfilePath: src/Services/FlowBoard.CardService/Dockerfile
+    plan: free
+    envVars:
+      - key: PORT
+        value: 5005
+      - key: ASPNETCORE_URLS
+        value: http://+:5005
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: flowboard-db
+          property: connectionString
+      - key: Redis__ConnectionString
+        value: flowboard-redis:6379
+      - key: Jwt__Key
+        fromService:
+          type: web
+          name: flowboard-gateway
+          envVar: Jwt__Key
+      - key: Jwt__Issuer
+        value: FlowBoard
+      - key: Jwt__Audience
+        value: FlowBoardUsers
+
+  # ── Comment Service ─────────────────────────────────────────────
+  - type: web
+    name: comment-service
+    env: docker
+    dockerContext: .
+    dockerfilePath: src/Services/FlowBoard.CommentService/Dockerfile
+    plan: free
+    envVars:
+      - key: PORT
+        value: 5006
+      - key: ASPNETCORE_URLS
+        value: http://+:5006
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: flowboard-db
+          property: connectionString
+      - key: Jwt__Key
+        fromService:
+          type: web
+          name: flowboard-gateway
+          envVar: Jwt__Key
+      - key: Jwt__Issuer
+        value: FlowBoard
+      - key: Jwt__Audience
+        value: FlowBoardUsers
+
+  # ── Label Service ───────────────────────────────────────────────
+  - type: web
+    name: label-service
+    env: docker
+    dockerContext: .
+    dockerfilePath: src/Services/FlowBoard.LabelService/Dockerfile
+    plan: free
+    envVars:
+      - key: PORT
+        value: 5007
+      - key: ASPNETCORE_URLS
+        value: http://+:5007
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: flowboard-db
+          property: connectionString
+      - key: Jwt__Key
+        fromService:
+          type: web
+          name: flowboard-gateway
+          envVar: Jwt__Key
+      - key: Jwt__Issuer
+        value: FlowBoard
+      - key: Jwt__Audience
+        value: FlowBoardUsers
+
+  # ── Checklist Service ───────────────────────────────────────────
+  - type: web
+    name: checklist-service
+    env: docker
+    dockerContext: .
+    dockerfilePath: src/Services/FlowBoard.ChecklistService/Dockerfile
+    plan: free
+    envVars:
+      - key: PORT
+        value: 5008
+      - key: ASPNETCORE_URLS
+        value: http://+:5008
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: flowboard-db
+          property: connectionString
+      - key: Jwt__Key
+        fromService:
+          type: web
+          name: flowboard-gateway
+          envVar: Jwt__Key
+      - key: Jwt__Issuer
+        value: FlowBoard
+      - key: Jwt__Audience
+        value: FlowBoardUsers
+
+  # ── Redis (as a Web Service for Free Tier) ───────────────────────
+  - type: web
+    name: flowboard-redis
+    env: docker
+    plan: free
+    dockerContext: .
+    dockerfilePath: Redis.Dockerfile
+
+databases:
+  - name: flowboard-db
+    plan: free

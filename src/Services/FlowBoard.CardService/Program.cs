@@ -75,13 +75,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 builder.Services.AddCors(opts =>
     opts.AddPolicy("AllowAngular",
-        p => p.WithOrigins(
-                "http://localhost:4200",          // dev
-                "https://YOUR-APP.vercel.app"     // production
-              )
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials()));
+        p => {
+            var allowedOrigins = builder.Configuration["AllowedOrigins"]?.Split(',') 
+                                 ?? new[] { "http://localhost:4200", "https://flowboard-ui.onrender.com" };
+            p.WithOrigins(allowedOrigins)
+             .AllowAnyHeader()
+             .AllowAnyMethod()
+             .AllowCredentials();
+        }));
 
 var app = builder.Build();
 
