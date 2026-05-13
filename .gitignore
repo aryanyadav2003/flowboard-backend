@@ -1,0 +1,28 @@
+# Build outputs
+bin/
+obj/
+*.dll
+*.exe
+
+# Visual Studio
+.vs/
+.vscode/
+*.sln.user
+*.csproj.user
+*.user
+
+# NuGet
+packages/
+.nuget/
+
+# Environment
+.env
+.env.local
+appsettings.local.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.dockerignore

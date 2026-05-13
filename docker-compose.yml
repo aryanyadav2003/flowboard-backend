@@ -1,0 +1,236 @@
+version: '3.8'
+
+services:
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: flowboard-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=FlowBoard@123!
+      - POSTGRES_DB=postgres
+    volumes:
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - flowboard-network
+    restart: always
+
+  redis:
+    image: redis:7-alpine
+    container_name: flowboard-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - flowboard-network
+    restart: always
+    command: redis-server --appendonly yes
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: src/Services/FlowBoard.AuthService/Dockerfile
+    container_name: flowboard-auth
+    ports:
+      - "5001:5001"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=flowboard_auth;Username=postgres;Password=FlowBoard@123!;
+      - Jwt__Key=${JWT_KEY:-your-super-secret-development-key-with-at-least-32-characters}
+      - Jwt__Issuer=FlowBoard
+      - Jwt__Audience=FlowBoardUsers
+      - Urls=http://+:5001
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - postgres
+    networks:
+      - flowboard-network
+    restart: always
+
+  workspace-service:
+    build:
+      context: .
+      dockerfile: src/Services/FlowBoard.WorkspaceService/Dockerfile
+    container_name: flowboard-workspace
+    ports:
+      - "5002:5002"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=flowboard_workspace;Username=postgres;Password=FlowBoard@123!;
+      - Jwt__Key=${JWT_KEY:-your-super-secret-development-key-with-at-least-32-characters}
+      - Jwt__Issuer=FlowBoard
+      - Jwt__Audience=FlowBoardUsers
+      - Urls=http://+:5002
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - postgres
+    networks:
+      - flowboard-network
+    restart: always
+
+  board-service:
+    build:
+      context: .
+      dockerfile: src/Services/FlowBoard.BoardService/Dockerfile
+    container_name: flowboard-board
+    ports:
+      - "5003:5003"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=flowboard_board;Username=postgres;Password=FlowBoard@123!;
+      - Jwt__Key=${JWT_KEY:-your-super-secret-development-key-with-at-least-32-characters}
+      - Jwt__Issuer=FlowBoard
+      - Jwt__Audience=FlowBoardUsers
+      - Urls=http://+:5003
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - postgres
+    networks:
+      - flowboard-network
+    restart: always
+
+  list-service:
+    build:
+      context: .
+      dockerfile: src/Services/FlowBoard.ListService/Dockerfile
+    container_name: flowboard-list
+    ports:
+      - "5004:5004"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=flowboard_list;Username=postgres;Password=FlowBoard@123!;
+      - Jwt__Key=${JWT_KEY:-your-super-secret-development-key-with-at-least-32-characters}
+      - Jwt__Issuer=FlowBoard
+      - Jwt__Audience=FlowBoardUsers
+      - Urls=http://+:5004
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - postgres
+    networks:
+      - flowboard-network
+    restart: always
+
+  card-service:
+    build:
+      context: .
+      dockerfile: src/Services/FlowBoard.CardService/Dockerfile
+    container_name: flowboard-card
+    ports:
+      - "5005:5005"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=flowboard_card;Username=postgres;Password=FlowBoard@123!;
+      - Jwt__Key=${JWT_KEY:-your-super-secret-development-key-with-at-least-32-characters}
+      - Jwt__Issuer=FlowBoard
+      - Jwt__Audience=FlowBoardUsers
+      - Redis__ConnectionString=redis:6379
+      - Urls=http://+:5005
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - flowboard-network
+    restart: always
+
+  comment-service:
+    build:
+      context: .
+      dockerfile: src/Services/FlowBoard.CommentService/Dockerfile
+    container_name: flowboard-comment
+    ports:
+      - "5006:5006"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=flowboard_comment;Username=postgres;Password=FlowBoard@123!;
+      - Jwt__Key=${JWT_KEY:-your-super-secret-development-key-with-at-least-32-characters}
+      - Jwt__Issuer=FlowBoard
+      - Jwt__Audience=FlowBoardUsers
+      - Urls=http://+:5006
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - postgres
+    networks:
+      - flowboard-network
+    restart: always
+
+  label-service:
+    build:
+      context: .
+      dockerfile: src/Services/FlowBoard.LabelService/Dockerfile
+    container_name: flowboard-label
+    ports:
+      - "5007:5007"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=flowboard_label;Username=postgres;Password=FlowBoard@123!;
+      - Jwt__Key=${JWT_KEY:-your-super-secret-development-key-with-at-least-32-characters}
+      - Jwt__Issuer=FlowBoard
+      - Jwt__Audience=FlowBoardUsers
+      - Urls=http://+:5007
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - postgres
+    networks:
+      - flowboard-network
+    restart: always
+
+  checklist-service:
+    build:
+      context: .
+      dockerfile: src/Services/FlowBoard.ChecklistService/Dockerfile
+    container_name: flowboard-checklist
+    ports:
+      - "5008:5008"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=flowboard_checklist;Username=postgres;Password=FlowBoard@123!;
+      - Jwt__Key=${JWT_KEY:-your-super-secret-development-key-with-at-least-32-characters}
+      - Jwt__Issuer=FlowBoard
+      - Jwt__Audience=FlowBoardUsers
+      - Urls=http://+:5008
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - postgres
+    networks:
+      - flowboard-network
+    restart: always
+
+  gateway:
+    build:
+      context: .
+      dockerfile: src/Gateway/FlowBoard.Gateway/Dockerfile
+    container_name: flowboard-gateway
+    ports:
+      - "5000:5000"
+    environment:
+      - Jwt__Key=${JWT_KEY:-your-super-secret-development-key-with-at-least-32-characters}
+      - Jwt__Issuer=FlowBoard
+      - Jwt__Audience=FlowBoardUsers
+      - Urls=http://+:5000
+      - ReverseProxy__Clusters__auth-cluster__Destinations__auth-destination__Address=http://auth-service:5001/
+      - ReverseProxy__Clusters__workspace-cluster__Destinations__workspace-destination__Address=http://workspace-service:5002/
+      - ReverseProxy__Clusters__board-cluster__Destinations__board-destination__Address=http://board-service:5003/
+      - ReverseProxy__Clusters__list-cluster__Destinations__list-destination__Address=http://list-service:5004/
+      - ReverseProxy__Clusters__card-cluster__Destinations__card-destination__Address=http://card-service:5005/
+      - ReverseProxy__Clusters__comment-cluster__Destinations__comment-destination__Address=http://comment-service:5006/
+      - ReverseProxy__Clusters__label-cluster__Destinations__label-destination__Address=http://label-service:5007/
+      - ReverseProxy__Clusters__checklist-cluster__Destinations__checklist-destination__Address=http://checklist-service:5008/
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - postgres
+      - auth-service
+      - workspace-service
+      - board-service
+      - list-service
+      - card-service
+      - comment-service
+      - label-service
+      - checklist-service
+    networks:
+      - flowboard-network
+    restart: always
+
+volumes:
+  redis-data:
+  postgres-data:
+
+networks:
+  flowboard-network:
+    driver: bridge
