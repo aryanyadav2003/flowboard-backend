@@ -1,0 +1,6 @@
+@FlowBoard.CommentService_HostAddress = http://localhost:5283
+
+GET {{FlowBoard.CommentService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
